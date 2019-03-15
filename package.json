@@ -2,15 +2,19 @@
   "name": "opus-launcher",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
+  "devDependencies": {
     "@types/jest": "24.0.11",
     "@types/node": "11.11.3",
     "@types/react": "16.8.8",
     "@types/react-dom": "16.8.2",
     "prettier": "^1.16.4",
+    "react-scripts": "2.1.8"
+  },
+  "dependencies": {
+    "@inmotionnow/momentum-components-react": "10.0.1",
+    "@inmotionnow/utilities": "1.0.17",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
-    "react-scripts": "2.1.8",
     "typescript": "3.3.3333"
   },
   "scripts": {
