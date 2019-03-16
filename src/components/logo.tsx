@@ -1,6 +1,5 @@
 import * as React from 'react'
-import './components.css'
-import logo from '../images/inMotion_ignite-color.78e7a674.svg'
+import 'src/components/components.css'
 
 const Logo = () => {
   return <div className='logo' />

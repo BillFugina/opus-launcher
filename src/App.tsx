@@ -1,8 +1,7 @@
 import React, { Component } from 'react'
-import logo from './logo.svg'
-import './App.css'
+import 'src/App.css'
 import { Heading } from '@inmotionnow/momentum-components-react'
-import { Logo } from './components/logo'
+import { Logo } from 'src/components/logo'
 
 class App extends Component {
   render() {
