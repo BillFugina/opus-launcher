@@ -10,19 +10,22 @@ import {
   Container,
   Application,
   Buttons,
-  IControlChangeEventArgs
+  IControlChangeEventArgs,
+  Toggle,
+  IToggleChangedEventArgs
 } from '@inmotionnow/momentum-components-react'
 import { Logo } from 'src/components/logo'
 import { ControlGroup2 } from 'src/components/control-group'
 
 interface ILauncherAction {
-  type: 'setSubdomain' | 'setEnvironment' | 'launch'
-  payload: string
+  type: 'setSubdomain' | 'setEnvironment' | 'setNewTab' | 'launch'
+  payload: any
 }
 
 interface ILauncherState {
   subdomain: string
   environment: string
+  newTab: boolean
   touched: boolean
   subdomainError: boolean
   environmentError: boolean
@@ -40,6 +43,8 @@ const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState
       return { ...state, subdomain: action.payload, subdomainError: action.payload === '', touched: state.touched }
     case 'setEnvironment':
       return { ...state, environment: action.payload, environmentError: action.payload === '' }
+    case 'setNewTab':
+      return { ...state, newTab: action.payload }
     case 'launch':
       return { ...state, touched: true }
     default:
@@ -50,6 +55,7 @@ const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState
 const initialState: ILauncherState = {
   subdomain: '',
   environment: '',
+  newTab: false,
   touched: false,
   subdomainError: true,
   environmentError: true
@@ -66,13 +72,19 @@ const App: React.SFC = () => {
     dispatch({ type: 'setEnvironment', payload: event.currentValue })
   }, [])
 
+  const handleNewTabChange = useCallback((e: IToggleChangedEventArgs) => {
+    dispatch({ type: 'setNewTab', payload: e.currentValue })
+  }, [])
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     if (!state.subdomainError && !state.environmentError) {
       const port = state.environment == 'localhost' ? ':9002' : ''
       const url: any = `https://${state.subdomain}.${state.environment}.goinmo.com${port}`
-      chrome.tabs.create({
-        url
-      })
+      if (state.newTab) {
+        chrome.tabs.create({ url })
+      } else {
+        chrome.tabs.update({ url })
+      }
       window.close()
     } else {
       dispatch({ type: 'launch', payload: '' })
@@ -93,26 +105,47 @@ const App: React.SFC = () => {
                       <Section theme='primary'>
                         <Container>
                           <Form id='main-form' onSubmit={handleSubmit}>
-                            <ControlGroup2 id='subdomain-input' label='Subdomain'>
+                            <ControlGroup2
+                              id='subdomain-input'
+                              label='Subdomain'
+                              hasError={state.touched && state.subdomainError}
+                              helpText={state.touched && state.subdomainError ? subdomainErrorText : ''}
+                            >
                               <Input
                                 required={true}
                                 autoFocus={true}
                                 handleChange={handleSubdomainChange}
                                 value={state.subdomain}
+                                hasError={state.touched && state.subdomainError}
                               />
                             </ControlGroup2>
-                            <ControlGroup2 id='environment-input' label='Environment'>
-                              <Input required={true} handleChange={handleEnvironmentChange} value={state.environment} />
+                            <ControlGroup2
+                              id='environment-input'
+                              label='Environment'
+                              hasError={state.touched && state.environmentError}
+                              helpText={state.touched && state.environmentError ? environmentErrorText : ''}
+                            >
+                              <Input
+                                required={true}
+                                handleChange={handleEnvironmentChange}
+                                value={state.environment}
+                                hasError={state.touched && state.environmentError}
+                              />
                             </ControlGroup2>
+                            <Toggle label='open new tab' onChange={handleNewTabChange} checked={state.newTab} />
                           </Form>
-                          <Buttons>
-                            <Form.Submit formId='main-form' label='Go' />
-                          </Buttons>
                         </Container>
                       </Section>
                     )
                   }}
                 />
+              ),
+              footer: (
+                <Section theme='primary' padding='sm'>
+                  <Buttons>
+                    <Form.Submit formId='main-form' label='Go' />
+                  </Buttons>
+                </Section>
               )
             }}
           />
