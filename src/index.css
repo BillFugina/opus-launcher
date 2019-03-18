@@ -4,6 +4,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 400px;
+  width: 350px;
 }
 
 code {
@@ -11,6 +13,6 @@ code {
 }
 
 #root {
-  min-width: 500px;
-  min-height: 500px;
+  height: unset;
+  overflow: unset;
 }

@@ -13,6 +13,7 @@
   "dependencies": {
     "@inmotionnow/momentum-components-react": "10.0.1",
     "@inmotionnow/utilities": "1.0.17",
+    "@types/chrome": "0.0.81",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
     "typescript": "3.3.3333"
