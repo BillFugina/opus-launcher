@@ -70,7 +70,7 @@ const App: React.SFC = () => {
     if (!state.subdomainError && !state.environmentError) {
       const port = state.environment == 'localhost' ? ':9002' : ''
       const url: any = `https://${state.subdomain}.${state.environment}.goinmo.com${port}`
-      chrome.tabs.update({
+      chrome.tabs.create({
         url
       })
       window.close()
