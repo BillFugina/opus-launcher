@@ -16,6 +16,7 @@ import {
 } from '@inmotionnow/momentum-components-react'
 import { Logo } from 'src/components/logo'
 import { ControlGroup2 } from 'src/components/control-group'
+import { navigateTo } from 'src/helpers/navigate-to'
 
 interface ILauncherAction {
   type: 'setSubdomain' | 'setEnvironment' | 'setNewTab' | 'launch'
@@ -48,7 +49,7 @@ const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState
     case 'launch':
       return { ...state, touched: true }
     default:
-      throw new Error()
+      throw new Error(`Invalid action: ${action.type}`)
   }
 }
 
@@ -80,11 +81,7 @@ const App: React.SFC = () => {
     if (!state.subdomainError && !state.environmentError) {
       const port = state.environment == 'localhost' ? ':9002' : ''
       const url: any = `https://${state.subdomain}.${state.environment}.goinmo.com${port}`
-      if (state.newTab) {
-        chrome.tabs.create({ url })
-      } else {
-        chrome.tabs.update({ url })
-      }
+      navigateTo(url, { newWindow: state.newTab })
       window.close()
     } else {
       dispatch({ type: 'launch', payload: '' })
