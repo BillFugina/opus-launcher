@@ -1,4 +1,4 @@
-import React, { Component, useState, useCallback, useReducer } from 'react'
+import React, { Component, useState, useCallback, useReducer, useEffect, useMemo } from 'react'
 import 'src/App.css'
 import {
   Form,
@@ -12,11 +12,19 @@ import {
   Buttons,
   IControlChangeEventArgs,
   Toggle,
-  IToggleChangedEventArgs
+  IToggleChangedEventArgs,
+  Select,
+  ISelectOption,
+  Text
 } from '@inmotionnow/momentum-components-react'
 import { Logo } from 'src/components/logo'
 import { ControlGroup2 } from 'src/components/control-group'
 import { navigateTo } from 'src/helpers/navigate-to'
+import { useGetEnvironmentEntities } from 'src/hooks/getEnvironmentEntities'
+import { IDSelectOption, EmptyIDSelectOption } from 'src/types/select-option'
+import { SelectEdit } from 'src/components/select-edit'
+import { useGetSubdomainEntities } from 'src/hooks/getSubdomainEntities'
+import { Subdomain } from 'src/entities/subdomain'
 
 interface ILauncherAction {
   type: 'setSubdomain' | 'setEnvironment' | 'setNewTab' | 'launch'
@@ -55,23 +63,51 @@ const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState
 
 const initialState: ILauncherState = {
   subdomain: '',
-  environment: '',
+  environment: 'localhost',
   newTab: false,
   touched: false,
   subdomainError: true,
-  environmentError: true
+  environmentError: false
 }
 
 const App: React.SFC = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
+  const environments = useGetEnvironmentEntities()
+
+  useEffect(() => {
+    environments.fetch()
+  }, [])
+
+  const environmentMenuItems: IDSelectOption[] = useMemo(() => {
+    const result: IDSelectOption[] = environments.data.map((e, index) => ({
+      displayText: e.name,
+      value: index,
+      id: e.id
+    }))
+    return result
+  }, [environments.data])
+
+  const selectedEnvironmentMenuItem: IDSelectOption = useMemo(() => {
+    const result = environmentMenuItems.find(so => so.id === state.environment) || EmptyIDSelectOption
+    return result
+  }, [state.environment])
+
   const handleSubdomainChange = useCallback((event: IControlChangeEventArgs) => {
     dispatch({ type: 'setSubdomain', payload: event.currentValue })
   }, [])
 
-  const handleEnvironmentChange = useCallback((event: IControlChangeEventArgs) => {
-    dispatch({ type: 'setEnvironment', payload: event.currentValue })
+  const onSubdomainChange = useCallback((text: string) => {
+    dispatch({ type: 'setSubdomain', payload: text })
   }, [])
+
+  const handleEnvironmentChange = useCallback(
+    (event: IControlChangeEventArgs) => {
+      const environment = environmentMenuItems[event.currentValue]
+      dispatch({ type: 'setEnvironment', payload: environment.id })
+    },
+    [environmentMenuItems]
+  )
 
   const handleNewTabChange = useCallback((e: IToggleChangedEventArgs) => {
     dispatch({ type: 'setNewTab', payload: e.currentValue })
@@ -87,6 +123,8 @@ const App: React.SFC = () => {
       dispatch({ type: 'launch', payload: '' })
     }
   }
+
+  const handleRenderSubdomain = useCallback((subdomain: Subdomain) => <Text> {subdomain.name} </Text>, [])
 
   return (
     <div className='mds-h-application-wrapper'>
@@ -108,12 +146,15 @@ const App: React.SFC = () => {
                               hasError={state.touched && state.subdomainError}
                               helpText={state.touched && state.subdomainError ? subdomainErrorText : ''}
                             >
-                              <Input
+                              <SelectEdit
+                                id='subdomain-select-edit'
                                 required={true}
                                 autoFocus={true}
-                                handleChange={handleSubdomainChange}
+                                onChange={onSubdomainChange}
                                 value={state.subdomain}
                                 hasError={state.touched && state.subdomainError}
+                                getEntitiesHook={useGetSubdomainEntities}
+                                getEntityRender={handleRenderSubdomain}
                               />
                             </ControlGroup2>
                             <ControlGroup2
@@ -122,11 +163,10 @@ const App: React.SFC = () => {
                               hasError={state.touched && state.environmentError}
                               helpText={state.touched && state.environmentError ? environmentErrorText : ''}
                             >
-                              <Input
-                                required={true}
+                              <Select
+                                selectOptions={environmentMenuItems}
+                                selectedValue={selectedEnvironmentMenuItem.value}
                                 handleChange={handleEnvironmentChange}
-                                value={state.environment}
-                                hasError={state.touched && state.environmentError}
                               />
                             </ControlGroup2>
                             <Toggle label='open new tab' onChange={handleNewTabChange} checked={state.newTab} />

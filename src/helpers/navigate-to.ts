@@ -29,7 +29,7 @@ function chromeExtensionNavigateTo(url: string, options: INavigateToOptions = de
 function browserNavigateTo(url: string, options: INavigateToOptions = defaultNavigateToOptions) {
   const finalOptions = { ...defaultNavigateToOptions, ...options }
   if (finalOptions.newWindow) {
-    window.open(url, '_blank')
+    window.open(url)
   } else {
     window.location.href = url
   }
