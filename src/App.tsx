@@ -126,6 +126,8 @@ const App: React.SFC = () => {
 
   const handleRenderSubdomain = useCallback((subdomain: Subdomain) => <Text> {subdomain.name} </Text>, [])
 
+  const handleGetSubdomainText = useCallback((subdomain: Subdomain) => subdomain.name, [])
+
   return (
     <div className='mds-h-application-wrapper'>
       <Application>
@@ -155,6 +157,7 @@ const App: React.SFC = () => {
                                 hasError={state.touched && state.subdomainError}
                                 getEntitiesHook={useGetSubdomainEntities}
                                 getEntityRender={handleRenderSubdomain}
+                                getEntityText={handleGetSubdomainText}
                               />
                             </ControlGroup2>
                             <ControlGroup2

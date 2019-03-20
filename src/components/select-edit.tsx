@@ -14,7 +14,7 @@ interface IComponentOwnProps<TEntity> {
   debounce?: number
   getEntitiesHook: EntityHook<TEntity>
   getEntityRender: (item: TEntity) => JSX.Element
-  getEntityText?: (item: TEntity) => string
+  getEntityText: (item: TEntity) => string
   onChange?: (value: string) => void
   value?: string
 }
@@ -27,8 +27,14 @@ interface InputState {
 }
 
 type InputAction = {
-  type: 'focus' | 'blur' | 'type' | 'choose'
+  type: 'focus' | 'blur' | 'type' | 'choose' | 'cancel'
   payload?: any
+}
+
+enum FocusDirection {
+  up = -1,
+  none = 0,
+  down = 1
 }
 
 const inputReducer = (state: InputState, action: InputAction): InputState => {
@@ -44,23 +50,33 @@ const inputReducer = (state: InputState, action: InputAction): InputState => {
         return state
       }
     case 'choose':
+    case 'cancel':
       return { ...state, touched: false }
   }
 }
 
 export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>(props: IComponentProps<TEntity>) => {
+  // references
   const inputEl = useRef<HTMLInputElement>(null)
   const menuPanelRef = useRef<HTMLDivElement>(null)
 
+  // state
   const [value, setValue] = useState(props.value)
   const [inputState, dispatchInputEvent] = useReducer(inputReducer, { focused: false, touched: false })
+  const [focusedIndex, setFocusedIndex] = useState(0)
+  const [focusDirection, setFocusDirection] = useState<FocusDirection>(FocusDirection.none)
   const entities = props.getEntitiesHook()
 
+  // memoized functions
   const entityMenuItems: IMenuItemOptions[] = useMemo(() => {
-    const result = entities.data.map(e => ({ content: props.getEntityRender(e) }))
+    const result: IMenuItemOptions[] = entities.data.map<IMenuItemOptions>((e, index) => ({
+      content: props.getEntityRender(e),
+      focused: index === focusedIndex
+    }))
     return result
-  }, [entities, props.getEntityRender])
+  }, [entities, props.getEntityRender, focusedIndex])
 
+  // callbacks
   const handleInputChange = useCallback((event: IControlChangeEventArgs) => {
     setValue(event.currentValue)
     if (props.onChange) {
@@ -76,17 +92,64 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
     dispatchInputEvent({ type: 'blur' })
   }, [])
 
-  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    dispatchInputEvent({ type: 'type' })
-  }, [])
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      dispatchInputEvent({ type: 'type', payload: e })
+
+      const { key } = e
+      switch (key) {
+        case 'ArrowUp':
+        case 'ArrowDown':
+          if (entities.data && entities.data.length) {
+            e.preventDefault()
+            const direction = key === 'ArrowDown' ? FocusDirection.down : FocusDirection.up
+            setFocusDirection(direction)
+            let nextIndex = focusedIndex + direction
+            const isEnd = nextIndex < 0 || nextIndex === entities.data.length
+
+            if (isEnd) {
+              nextIndex = isEnd && direction > 0 ? 0 : entities.data.length - 1
+            }
+            setFocusedIndex(nextIndex)
+          }
+          break
+        case 'Enter':
+          e.preventDefault()
+          if (entities.data && entities.data.length > 0 && focusedIndex >= 0) {
+            const entity = entities.data[focusedIndex]
+            if (entity) {
+              dispatchInputEvent({ type: 'choose', payload: entity })
+              const newText = props.getEntityText(entity)
+              if (newText !== '') {
+                setValue(newText)
+              }
+            }
+          }
+          break
+        case 'PageDown':
+          if (entities.data && entities.data.length > 0 && focusedIndex >= 0) {
+            e.preventDefault()
+            setFocusedIndex(focusedIndex + 10)
+          }
+          break
+        case 'Escape':
+          dispatchInputEvent({ type: 'cancel' })
+      }
+    },
+    [entities]
+  )
 
   const handlePopoutClose = useCallback(() => {
     dispatchInputEvent({ type: 'choose' })
   }, [])
 
+  // effects
+
   useEffect(() => {
     entities.fetch(value)
   }, [value])
+
+  // render
 
   const {
     debounce,
