@@ -67,21 +67,9 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
   const [focusDirection, setFocusDirection] = useState<FocusDirection>(FocusDirection.none)
   const entities = props.getEntitiesHook()
 
-  // memoized functions
-  const entityMenuItems: IMenuItemOptions[] = useMemo(() => {
-    const result: IMenuItemOptions[] = entities.data.map<IMenuItemOptions>((e, index) => ({
-      content: props.getEntityRender(e),
-      focused: index === focusedIndex
-    }))
-    return result
-  }, [entities, props.getEntityRender, focusedIndex])
-
   // callbacks
   const handleInputChange = useCallback((event: IControlChangeEventArgs) => {
     setValue(event.currentValue)
-    if (props.onChange) {
-      props.onChange(event.currentValue)
-    }
   }, [])
 
   const handleInputFocus = useCallback(() => {
@@ -91,6 +79,17 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
   const handleInputBlur = useCallback(() => {
     dispatchInputEvent({ type: 'blur' })
   }, [])
+
+  const handleEntityClick = useCallback(
+    (entity: TEntity) => (event: React.MouseEvent) => {
+      dispatchInputEvent({ type: 'choose', payload: entity })
+      const newText = props.getEntityText(entity)
+      if (newText !== '') {
+        setValue(newText)
+      }
+    },
+    []
+  )
 
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -134,6 +133,7 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
             setFocusedIndex(focusedIndex + 10)
           }
           break
+        case 'Tab':
         case 'Escape':
           dispatchInputEvent({ type: 'cancel' })
       }
@@ -142,13 +142,29 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
   )
 
   const handlePopoutClose = useCallback(() => {
-    dispatchInputEvent({ type: 'choose' })
+    dispatchInputEvent({ type: 'cancel' })
   }, [])
+
+  // memoized functions
+  const entityMenuItems: IMenuItemOptions[] = useMemo(() => {
+    const result: IMenuItemOptions[] = entities.data.map<IMenuItemOptions>((e, index) => ({
+      content: props.getEntityRender(e),
+      focused: index === focusedIndex,
+      onClick: handleEntityClick(e)
+    }))
+    return result
+  }, [entities, props.getEntityRender, focusedIndex])
 
   // effects
 
   useEffect(() => {
     entities.fetch(value)
+  }, [value])
+
+  useEffect(() => {
+    if (props.onChange) {
+      props.onChange(value)
+    }
   }, [value])
 
   // render
@@ -163,7 +179,7 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
     ...inputProps
   } = props
 
-  const showPopup = value !== '' && inputState.focused && inputState.touched
+  const showPopup = value !== '' && inputState.touched
 
   return (
     <>
