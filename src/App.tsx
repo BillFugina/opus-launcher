@@ -46,7 +46,6 @@ const subdomainErrorText = 'Subdomain is required'
 const environmentErrorText = 'Environment is required'
 
 const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState => {
-  console.log(`Reducer`, state, action)
   switch (action.type) {
     case 'setSubdomain':
       return { ...state, subdomain: action.payload, subdomainError: action.payload === '', touched: state.touched }
