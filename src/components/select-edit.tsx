@@ -114,7 +114,9 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
           }
           break
         case 'Enter':
-          e.preventDefault()
+          if (inputState.touched) {
+            e.preventDefault()
+          }
           if (entities.data && entities.data.length > 0 && focusedIndex >= 0) {
             const entity = entities.data[focusedIndex]
             if (entity) {

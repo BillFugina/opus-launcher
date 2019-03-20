@@ -9,8 +9,9 @@ export const useGetSubdomainEntities: EntityHook<Subdomain> = () => {
   const [loading, setIsLoading] = useState(false)
   const [error, setIsError] = useState(false)
 
-  const fetch = () => {
-    setData(subdomains)
+  const fetch = (query?: string) => {
+    const result = query ? subdomains.filter(sd => sd.name.includes(query)) : subdomains
+    setData(result)
   }
 
   return { data, loading, error, fetch }
