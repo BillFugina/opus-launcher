@@ -93,8 +93,6 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
 
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      dispatchInputEvent({ type: 'type', payload: e })
-
       const { key } = e
       switch (key) {
         case 'ArrowUp':
@@ -115,14 +113,14 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
         case 'Enter':
           if (inputState.touched) {
             e.preventDefault()
-          }
-          if (entities.data && entities.data.length > 0 && focusedIndex >= 0) {
-            const entity = entities.data[focusedIndex]
-            if (entity) {
-              dispatchInputEvent({ type: 'choose', payload: entity })
-              const newText = props.getEntityText(entity)
-              if (newText !== '') {
-                setValue(newText)
+            if (entities.data && entities.data.length > 0 && focusedIndex >= 0) {
+              const entity = entities.data[focusedIndex]
+              if (entity) {
+                dispatchInputEvent({ type: 'choose', payload: entity })
+                const newText = props.getEntityText(entity)
+                if (newText !== '') {
+                  setValue(newText)
+                }
               }
             }
           }
@@ -136,6 +134,9 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
         case 'Tab':
         case 'Escape':
           dispatchInputEvent({ type: 'cancel' })
+          break
+        default:
+          dispatchInputEvent({ type: 'type', payload: e })
       }
     },
     [entities]
