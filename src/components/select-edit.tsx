@@ -206,6 +206,7 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
           align: 'left',
           size: 'lg',
           target: inputEl.current || undefined,
+          maxHeight: 'sm',
           menuPanelRef,
           offset: -10,
           onOutsideClick: handlePopoutClose,

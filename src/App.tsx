@@ -27,7 +27,7 @@ import { useGetSubdomainEntities } from 'src/hooks/getSubdomainEntities'
 import { Subdomain } from 'src/entities/subdomain'
 
 interface ILauncherAction {
-  type: 'setSubdomain' | 'setEnvironment' | 'setNewTab' | 'launch'
+  type: 'setSubdomain' | 'setEnvironment' | 'setNewTab' | 'launch' | 'did-launch'
   payload: any
 }
 
@@ -41,7 +41,7 @@ interface ILauncherState {
   url: string | null
 }
 
-type ILauncherReducer = (state: ILauncherState, action: ILauncherAction) => Partial<ILauncherState>
+type ILauncherReducer = (state: ILauncherState, action: ILauncherAction) => ILauncherState
 
 const subdomainErrorText = 'Subdomain is required'
 const environmentErrorText = 'Environment is required'
@@ -56,6 +56,8 @@ const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState
       return { ...state, newTab: action.payload }
     case 'launch':
       return { ...state, touched: true, url: action.payload }
+    case 'did-launch':
+      return { ...state, url: null }
     default:
       throw new Error(`Invalid action: ${action.type}`)
   }
@@ -83,9 +85,8 @@ const App: React.SFC = () => {
 
   useEffect(() => {
     if (state.url) {
-      console.log(`navigate to ${state.url}`)
-      // navigateTo(url, { newWindow: state.newTab })
-      // window.close()
+      navigateTo(state.url, { newWindow: state.newTab })
+      window.close()
     }
   }, [state.url])
 
