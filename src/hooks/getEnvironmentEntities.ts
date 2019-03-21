@@ -13,9 +13,11 @@ export const useGetEnvironmentEntities: EntityHook<Environment> = () => {
   const [loading, setIsLoading] = useState(false)
   const [error, setIsError] = useState(false)
 
-  const fetch = () => {
+  const query = () => {
     setData(environments)
   }
 
-  return { data, loading, error, fetch }
+  const add = (environment: Environment) => {}
+
+  return { data, loading, error, query, add }
 }

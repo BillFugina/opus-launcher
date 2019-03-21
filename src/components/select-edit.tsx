@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef, useMemo } from 'react'
-import { EntityHook } from 'src/types/entityHook'
+import { EntityHook, EntityHookResult } from 'src/types/entityHook'
 import {
   IControlChangeEventArgs,
   Input,
@@ -12,7 +12,7 @@ import { IDSelectOption } from 'src/types/select-option'
 
 interface IComponentOwnProps<TEntity> {
   debounce?: number
-  getEntitiesHook: EntityHook<TEntity>
+  getEntitiesHook: EntityHookResult<TEntity>
   getEntityRender: (item: TEntity) => JSX.Element
   getEntityText: (item: TEntity) => string
   onChange?: (value: string) => void
@@ -65,7 +65,7 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
   const [inputState, dispatchInputEvent] = useReducer(inputReducer, { focused: false, touched: false })
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [focusDirection, setFocusDirection] = useState<FocusDirection>(FocusDirection.none)
-  const entities = props.getEntitiesHook()
+  const entities = props.getEntitiesHook
 
   // callbacks
   const handleInputChange = useCallback((event: IControlChangeEventArgs) => {
@@ -102,7 +102,7 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
             const direction = key === 'ArrowDown' ? FocusDirection.down : FocusDirection.up
             setFocusDirection(direction)
             let nextIndex = focusedIndex + direction
-            const isEnd = nextIndex < 0 || nextIndex === entities.data.length
+            const isEnd = nextIndex < 0 || nextIndex >= entities.data.length
 
             if (isEnd) {
               nextIndex = isEnd && direction > 0 ? 0 : entities.data.length - 1
@@ -136,10 +136,14 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
           dispatchInputEvent({ type: 'cancel' })
           break
         default:
-          dispatchInputEvent({ type: 'type', payload: e })
+          if (entities.data.length > 0) {
+            dispatchInputEvent({ type: 'type', payload: e })
+          } else if (inputState.touched) {
+            dispatchInputEvent({ type: 'cancel' })
+          }
       }
     },
-    [entities]
+    [entities, focusedIndex]
   )
 
   const handlePopoutClose = useCallback(() => {
@@ -159,7 +163,7 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
   // effects
 
   useEffect(() => {
-    entities.fetch(value)
+    entities.query(value)
   }, [value])
 
   useEffect(() => {
@@ -180,7 +184,7 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
     ...inputProps
   } = props
 
-  const showPopup = value !== '' && inputState.touched
+  const showPopup = value !== '' && inputState.touched && entities.data.length > 0
 
   return (
     <>

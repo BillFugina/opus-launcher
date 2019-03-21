@@ -32,12 +32,13 @@ interface ILauncherAction {
 }
 
 interface ILauncherState {
-  subdomain: string
   environment: string
-  newTab: boolean
-  touched: boolean
-  subdomainError: boolean
   environmentError: boolean
+  newTab: boolean
+  subdomain: string
+  subdomainError: boolean
+  touched: boolean
+  url: string | null
 }
 
 type ILauncherReducer = (state: ILauncherState, action: ILauncherAction) => Partial<ILauncherState>
@@ -54,29 +55,39 @@ const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState
     case 'setNewTab':
       return { ...state, newTab: action.payload }
     case 'launch':
-      return { ...state, touched: true }
+      return { ...state, touched: true, url: action.payload }
     default:
       throw new Error(`Invalid action: ${action.type}`)
   }
 }
 
 const initialState: ILauncherState = {
-  subdomain: '',
   environment: 'localhost',
+  environmentError: false,
   newTab: false,
-  touched: false,
+  subdomain: '',
   subdomainError: true,
-  environmentError: false
+  touched: false,
+  url: null
 }
 
 const App: React.SFC = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   const environments = useGetEnvironmentEntities()
+  const subdomains = useGetSubdomainEntities()
 
   useEffect(() => {
-    environments.fetch()
+    environments.query()
   }, [])
+
+  useEffect(() => {
+    if (state.url) {
+      console.log(`navigate to ${state.url}`)
+      // navigateTo(url, { newWindow: state.newTab })
+      // window.close()
+    }
+  }, [state.url])
 
   const environmentMenuItems: IDSelectOption[] = useMemo(() => {
     const result: IDSelectOption[] = environments.data.map((e, index) => ({
@@ -114,12 +125,19 @@ const App: React.SFC = () => {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     if (!state.subdomainError && !state.environmentError) {
+      if (state.subdomain && state.subdomain !== '') {
+        const subdomainEntity = subdomains.data.find(s => s.id === state.subdomain)
+        if (!subdomainEntity) {
+          const newSubdomainEntity: Subdomain = { id: state.subdomain, name: state.subdomain }
+          subdomains.add(newSubdomainEntity)
+        }
+      }
+
       const port = state.environment == 'localhost' ? ':9002' : ''
       const url: any = `https://${state.subdomain}.${state.environment}.goinmo.com${port}`
-      navigateTo(url, { newWindow: state.newTab })
-      window.close()
+      dispatch({ type: 'launch', payload: url })
     } else {
-      dispatch({ type: 'launch', payload: '' })
+      dispatch({ type: 'launch', payload: null })
     }
   }
 
@@ -154,7 +172,7 @@ const App: React.SFC = () => {
                                 onChange={onSubdomainChange}
                                 value={state.subdomain}
                                 hasError={state.touched && state.subdomainError}
-                                getEntitiesHook={useGetSubdomainEntities}
+                                getEntitiesHook={subdomains}
                                 getEntityRender={handleRenderSubdomain}
                                 getEntityText={handleGetSubdomainText}
                               />
@@ -169,6 +187,7 @@ const App: React.SFC = () => {
                                 selectOptions={environmentMenuItems}
                                 selectedValue={selectedEnvironmentMenuItem.value}
                                 handleChange={handleEnvironmentChange}
+                                required={true}
                               />
                             </ControlGroup2>
                             <Toggle label='open new tab' onChange={handleNewTabChange} checked={state.newTab} />
