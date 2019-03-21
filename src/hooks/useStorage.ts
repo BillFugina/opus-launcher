@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef } from 'react'
 import { DeepCompare } from '@inmotionnow/utilities'
 import { IStorageHookResult, IStorageState } from 'src/types/storageHook'
-import { GeneralStorage } from 'src/helpers/storage/helpers'
+import { GeneralStorage } from 'src/helpers/storage/general-storage'
 import { StorageEventChanges } from 'src/helpers/storage/types'
 
 interface IStorageAction {
