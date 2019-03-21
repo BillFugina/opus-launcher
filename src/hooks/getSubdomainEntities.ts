@@ -1,14 +1,12 @@
-import React, { Component, useState, useCallback, useReducer, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Subdomain } from 'src/entities/subdomain'
 import { EntityHook } from 'src/types/entityHook'
-import { useChromeStorage } from 'src/hooks/useChromeStorage'
-import { useLocalStorage } from 'src/hooks/useLocalStorage'
-import { isChromeExtension } from 'src/helpers/is-chrome-extension'
+import { useStorage } from 'src/hooks/useStorage'
 
 const defaultSubdomains: Subdomain[] = [{ id: 'opus', name: 'opus' }]
 
 export const useGetSubdomainEntities: EntityHook<Subdomain> = () => {
-  const subdomainStorage = useChromeStorage<Subdomain[]>('subdomains', defaultSubdomains)
+  const subdomainStorage = useStorage<Subdomain[]>('subdomains', defaultSubdomains)
 
   const [filter, setFilter] = useState<string>('')
   const [data, setData] = useState<Subdomain[]>([])
