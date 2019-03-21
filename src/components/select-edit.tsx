@@ -67,6 +67,10 @@ export const SelectEdit: React.SFC<IComponentProps<any>> = <TEntity extends any>
   const [focusDirection, setFocusDirection] = useState<FocusDirection>(FocusDirection.none)
   const entities = props.getEntitiesHook
 
+  useEffect(() => {
+    setValue(props.value)
+  }, [props.value])
+
   // callbacks
   const handleInputChange = useCallback((event: IControlChangeEventArgs) => {
     setValue(event.currentValue)

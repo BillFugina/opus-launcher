@@ -25,9 +25,10 @@ import { IDSelectOption, EmptyIDSelectOption } from 'src/types/select-option'
 import { SelectEdit } from 'src/components/select-edit'
 import { useGetSubdomainEntities } from 'src/hooks/getSubdomainEntities'
 import { Subdomain } from 'src/entities/subdomain'
+import { useStorage } from 'src/hooks/useStorage'
 
 interface ILauncherAction {
-  type: 'setSubdomain' | 'setEnvironment' | 'setNewTab' | 'launch' | 'did-launch'
+  type: 'setSubdomain' | 'setEnvironment' | 'setNewTab' | 'launch' | 'did-launch' | 'restore-state'
   payload: any
 }
 
@@ -58,6 +59,8 @@ const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState
       return { ...state, touched: true, url: action.payload }
     case 'did-launch':
       return { ...state, url: null }
+    case 'restore-state':
+      return { ...action.payload }
     default:
       throw new Error(`Invalid action: ${action.type}`)
   }
@@ -76,8 +79,14 @@ const initialState: ILauncherState = {
 const App: React.SFC = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
+  const appState = useStorage<ILauncherState>('opus-launcher', initialState)
+
   const environments = useGetEnvironmentEntities()
   const subdomains = useGetSubdomainEntities()
+
+  useEffect(() => {
+    dispatch({ type: 'restore-state', payload: appState.data })
+  }, [appState.data])
 
   useEffect(() => {
     environments.query()
@@ -134,6 +143,8 @@ const App: React.SFC = () => {
         }
       }
 
+      appState.setData(state)
+
       const port = state.environment == 'localhost' ? ':9002' : ''
       const url: any = `https://${state.subdomain}.${state.environment}.goinmo.com${port}`
       dispatch({ type: 'launch', payload: url })
@@ -146,7 +157,7 @@ const App: React.SFC = () => {
 
   const handleGetSubdomainText = useCallback((subdomain: Subdomain) => subdomain.name, [])
 
-  return (
+  return appState.isLoading ? null : (
     <div className='mds-h-application-wrapper'>
       <Application>
         <Application.Layout>
