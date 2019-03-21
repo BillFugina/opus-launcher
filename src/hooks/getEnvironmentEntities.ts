@@ -5,7 +5,8 @@ import { EntityHook } from 'src/types/entityHook'
 const environments: Environment[] = [
   { id: 'localhost', name: 'localhost' },
   { id: 'develop', name: 'develop' },
-  { id: 'staging', name: 'staging' }
+  { id: 'staging', name: 'staging' },
+  { id: 'demo', name: 'demo' }
 ]
 
 export const useGetEnvironmentEntities: EntityHook<Environment> = () => {
