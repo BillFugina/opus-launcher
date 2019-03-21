@@ -3,8 +3,8 @@ import { ChromeStorageLocal } from 'src/helpers/storage/chrome-storage-local'
 import { ChromeStorageSync } from 'src/helpers/storage/chrome-storage-sync'
 import { LocalStorage } from 'src/helpers/storage/local-storage'
 
-export const hasChromeStorageSync = chrome && chrome.storage && chrome.storage.sync
-export const hasChromeStorageLocal = chrome && chrome.storage && chrome.storage.local
+export const hasChromeStorageSync = chrome != null && chrome.storage != null && chrome.storage.sync != null
+export const hasChromeStorageLocal = chrome != null && chrome.storage != null && chrome.storage.local != null
 
 export const GeneralStorage = hasChromeStorageSync
   ? ChromeStorageSync()
