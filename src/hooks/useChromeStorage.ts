@@ -80,11 +80,9 @@ export const useChromeStorage = <TEntity>(storageKey: string, initialEntity: TEn
 
   useEffect(() => {
     if (isChromeExtension()) {
-      console.log(`getting from chrome storage`)
       dispatch({ type: 'get' })
 
       chrome.storage.sync.get([storageKey], result => {
-        console.log(`received from chrome storage`, result)
         if (!chrome.runtime.lastError) {
           const newData = result[storageKey]
           if (newData && !DeepCompare.equal(state.data, newData)) {
@@ -93,12 +91,10 @@ export const useChromeStorage = <TEntity>(storageKey: string, initialEntity: TEn
             dispatch({ type: 'value-not-in-storage' })
           }
         } else {
-          console.log(`error receiving from chrome storage`, chrome.runtime.lastError)
           dispatch({ type: 'get-failed', payload: chrome.runtime.lastError })
         }
       })
     } else {
-      console.log(`getting from local storage`)
       try {
         dispatch({ type: 'get' })
         const storedValue = window.localStorage.getItem(storageKey)
@@ -115,16 +111,10 @@ export const useChromeStorage = <TEntity>(storageKey: string, initialEntity: TEn
   }, [])
 
   useEffect(() => {
-    console.log(`state.data has changed`)
-
     const isChrome = isChromeExtension()
     const storageName = isChrome ? 'chrome' : 'local'
 
-    if (state.storageValue === undefined) {
-      console.log(`state.storageValue is undefined`)
-    } else if (!DeepCompare.equal(state.data, state.storageValue)) {
-      console.log(`saving to ${storageName} storage`, state.data)
-
+    if (state.storageValue !== undefined && !DeepCompare.equal(state.data, state.storageValue)) {
       dispatch({ type: 'save' })
 
       if (isChrome) {
@@ -143,20 +133,13 @@ export const useChromeStorage = <TEntity>(storageKey: string, initialEntity: TEn
           dispatch({ type: 'save-failed', payload: error })
         }
       }
-    } else {
-      console.log(`${storageName} storage already has new value`)
     }
   }, [state.data])
 
   const storageCallback = (changes: ChromeStorageEventChanges, namespace: string) => {
-    console.log(`chrome storage changed`, changes, state.data)
     const dataChange = changes[storageKey]
     if (dataChange && !DeepCompare.equal(state.data, dataChange.newValue)) {
       dispatch({ type: 'storage-changed', payload: dataChange.newValue })
-      console.log(`updating state`)
-    }
-    {
-      console.log(`state already has new value`)
     }
   }
 
