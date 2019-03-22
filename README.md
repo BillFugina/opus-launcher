@@ -1,6 +1,6 @@
-# About
 <img align="right" width="200" src="opus-launcher-ui.png" style="margin-left: 20px;" >  
 
+# About
 Opus-Launcher is a popup [Chrome Extension](https://developer.chrome.com/extensions) that builds and navigates to an Opus URL.  
 It has inputs for **Subdomain** and **Environmant** and a checkbox for opening the url in a new tab.  
 It maintains its state across uses and keeps a history of used subdomains.
