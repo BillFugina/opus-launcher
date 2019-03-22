@@ -1,3 +1,29 @@
+# About
+<img align="right" width="200" src="opus-launcher-ui.png" style="margin-left: 20px;" >  
+
+Opus-Launcher is a popup [Chrome Extension](https://developer.chrome.com/extensions) that builds and navigates to an Opus URL.  
+It has inputs for **Subdomain** and **Environmant** and a checkbox for opening the url in a new tab.  
+It maintains its state across uses and keeps a history of used subdomains.
+
+If the user is logged into Chrome, the extension will sync the state across multiple Chrome instances. If the user is not logged into Chrome, the state will only be maintained on the machine that it is running on.
+
+<P style="clear:both;">
+
+# Installing the Chrome Extension
+
+1. Build the extension.  
+_The build result will be in the `build` directory in the project directory._  
+     **`yarn build`**
+2. Open the Chrome Extension Management page by navigating to `chrome://extensions`
+3. Enable Developer Mode by clicking the toggle switch next to **Developer mode**.
+4. Click the **LOAD UNPACKED** button and select the `build` directory.
+
+![Chrome Extension Configuration](load_extension.png)
+
+See the Chrome Developer [Getting Started Tutorial](https://developer.chrome.com/extensions/getstarted) for more information.
+
+# Development
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
