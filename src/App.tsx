@@ -146,7 +146,8 @@ const App: React.SFC = () => {
       appState.setData(state)
 
       const port = state.environment == 'localhost' ? ':9002' : ''
-      const url: any = `https://${state.subdomain}.${state.environment}.goinmo.com${port}`
+      const domain = state.environment === 'production' ? '.ignite.inmotionnow.com' : '.goinmo.com'
+      const url: string = `https://${state.subdomain}.${state.environment}${domain}${port}`
       dispatch({ type: 'launch', payload: url })
     } else {
       dispatch({ type: 'launch', payload: null })
