@@ -8,7 +8,8 @@ const environments: Environment[] = [
   { id: 'sandbox', name: 'sandbox' },
   { id: 'staging', name: 'staging' },
   { id: 'demo', name: 'demo' },
-  { id: 'production', name: 'production' }
+  { id: 'production', name: 'production' },
+  { id: 'support', name: 'support' }
 ]
 
 export const useGetEnvironmentEntities: EntityHook<Environment> = () => {
