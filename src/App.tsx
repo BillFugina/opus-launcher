@@ -26,13 +26,18 @@ import { SelectEdit } from 'src/components/select-edit'
 import { useGetSubdomainEntities } from 'src/hooks/getSubdomainEntities'
 import { Subdomain } from 'src/entities/subdomain'
 import { useStorage } from 'src/hooks/useStorage'
+import { createURL, hostnameToParts, environmentToDomain, getPath, getCurrentURL } from 'src/helpers/url'
+import { debug } from 'util'
+import { url } from 'inspector'
+import { assertNever } from 'src/helpers/errors'
 
 interface ILauncherAction {
-  type: 'setSubdomain' | 'setEnvironment' | 'setNewTab' | 'launch' | 'did-launch' | 'restore-state'
+  type: 'setSubdomain' | 'setEnvironment' | 'setNewTab' | 'launch' | 'did-launch' | 'restore-state' | 'set-current-url'
   payload: any
 }
 
 interface ILauncherState {
+  currentURL?: URL
   environment: string
   environmentError: boolean
   newTab: boolean
@@ -61,8 +66,10 @@ const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState
       return { ...state, url: null }
     case 'restore-state':
       return { ...action.payload }
+    case 'set-current-url':
+      return { ...state, currentURL: action.payload }
     default:
-      throw new Error(`Invalid action: ${action.type}`)
+      assertNever(action.type)
   }
 }
 
@@ -90,12 +97,16 @@ const App: React.SFC = () => {
 
   useEffect(() => {
     environments.query()
+    getCurrentURL((currentURL: URL) => {
+      console.log(`set-current-url`, currentURL)
+      dispatch({ type: 'set-current-url', payload: currentURL })
+    })
   }, [])
 
   useEffect(() => {
     if (state.url) {
       navigateTo(state.url, { newWindow: state.newTab })
-      window.close()
+      // window.close()
     }
   }, [state.url])
 
@@ -143,12 +154,11 @@ const App: React.SFC = () => {
         }
       }
 
+      const pathname = !state.newTab && state.currentURL ? getPath(state.currentURL) : ''
+
       appState.setData(state)
 
-      const port = state.environment == 'localhost' ? ':9002' : ''
-      const domain = state.environment === 'production' ? '.inmotionnow.com' : '.goinmo.com'
-      const env = state.environment === 'production' ? 'ignite' : state.environment
-      const url: string = `https://${state.subdomain}.${env}${domain}${port}`
+      const url = createURL(state.environment, state.subdomain, pathname)
       dispatch({ type: 'launch', payload: url })
     } else {
       dispatch({ type: 'launch', payload: null })

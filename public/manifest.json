@@ -21,8 +21,9 @@
   "name": "Opus Launcher",
   "manifest_version": 2,
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
   "short_name": "Launch Opus",
-  "version": "0.0.45"
+  "version": "0.0.47"
 }
