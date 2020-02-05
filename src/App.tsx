@@ -1,9 +1,7 @@
-import React, { Component, useState, useCallback, useReducer, useEffect, useMemo } from 'react'
+import React, { useCallback, useReducer, useEffect, useMemo } from 'react'
 import 'src/App.css'
 import {
   Form,
-  Input,
-  ControlGroup,
   View,
   Main,
   Section,
@@ -14,7 +12,6 @@ import {
   Toggle,
   IToggleChangedEventArgs,
   Select,
-  ISelectOption,
   Text
 } from '@inmotionnow/momentum-components-react'
 import { Logo } from 'src/components/logo'
@@ -26,9 +23,7 @@ import { SelectEdit } from 'src/components/select-edit'
 import { useGetSubdomainEntities } from 'src/hooks/getSubdomainEntities'
 import { Subdomain } from 'src/entities/subdomain'
 import { useStorage } from 'src/hooks/useStorage'
-import { createURL, hostnameToParts, environmentToDomain, getPath, getCurrentURL } from 'src/helpers/url'
-import { debug } from 'util'
-import { url } from 'inspector'
+import { createURL, getPath, getCurrentURL, igniteURLToParts } from 'src/helpers/url'
 import { assertNever } from 'src/helpers/errors'
 
 interface ILauncherAction {
@@ -36,7 +31,7 @@ interface ILauncherAction {
   payload: any
 }
 
-interface ILauncherState {
+export interface ILauncherState {
   currentURL?: URL
   environment: string
   environmentError: boolean
@@ -47,30 +42,50 @@ interface ILauncherState {
   url: string | null
 }
 
-type ILauncherReducer = (state: ILauncherState, action: ILauncherAction) => ILauncherState
-
 const subdomainErrorText = 'Subdomain is required'
 const environmentErrorText = 'Environment is required'
 
 const reducer = (state: ILauncherState, action: ILauncherAction): ILauncherState => {
+  console.info(`%cREDUCER: action.type: ${action.type}`, `background-color: cornflowerblue; color: white;`, {
+    state,
+    action
+  })
+  let result: ILauncherState = state
   switch (action.type) {
     case 'setSubdomain':
-      return { ...state, subdomain: action.payload, subdomainError: action.payload === '', touched: state.touched }
+      result = { ...state, subdomain: action.payload, subdomainError: action.payload === '', touched: state.touched }
+      break
     case 'setEnvironment':
-      return { ...state, environment: action.payload, environmentError: action.payload === '' }
+      result = { ...state, environment: action.payload, environmentError: action.payload === '' }
+      break
     case 'setNewTab':
-      return { ...state, newTab: action.payload }
+      result = { ...state, newTab: action.payload }
+      break
     case 'launch':
-      return { ...state, touched: true, url: action.payload }
+      result = { ...state, touched: true, url: action.payload }
+      break
     case 'did-launch':
-      return { ...state, url: null }
+      result = { ...state, url: null }
+      break
     case 'restore-state':
-      return { ...action.payload }
+      result = { ...action.payload }
+      break
     case 'set-current-url':
-      return { ...state, currentURL: action.payload }
+      const { environment, subdomain } = igniteURLToParts(action.payload, {
+        environment: state.environment,
+        subdomain: state.subdomain
+      })
+      result = { ...state, currentURL: action.payload, environment, subdomain }
+      break
     default:
       assertNever(action.type)
+      break
   }
+  console.info(`%cREDUCER RESULT`, `background-color: mediumaquamarine; color: white;`, {
+    result
+  })
+
+  return result
 }
 
 const initialState: ILauncherState = {
@@ -98,7 +113,6 @@ const App: React.SFC = () => {
   useEffect(() => {
     environments.query()
     getCurrentURL((currentURL: URL) => {
-      console.log(`set-current-url`, currentURL)
       dispatch({ type: 'set-current-url', payload: currentURL })
     })
   }, [])
@@ -106,7 +120,7 @@ const App: React.SFC = () => {
   useEffect(() => {
     if (state.url) {
       navigateTo(state.url, { newWindow: state.newTab })
-      // window.close()
+      window.close()
     }
   }, [state.url])
 
@@ -124,10 +138,6 @@ const App: React.SFC = () => {
     return result
   }, [state.environment])
 
-  const handleSubdomainChange = useCallback((event: IControlChangeEventArgs) => {
-    dispatch({ type: 'setSubdomain', payload: event.currentValue })
-  }, [])
-
   const onSubdomainChange = useCallback((text: string) => {
     dispatch({ type: 'setSubdomain', payload: text })
   }, [])
@@ -144,7 +154,7 @@ const App: React.SFC = () => {
     dispatch({ type: 'setNewTab', payload: e.currentValue })
   }, [])
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = () => {
     if (!state.subdomainError && !state.environmentError) {
       if (state.subdomain && state.subdomain !== '') {
         const subdomainEntity = subdomains.data.find(s => s.id === state.subdomain)
@@ -153,12 +163,10 @@ const App: React.SFC = () => {
           subdomains.add(newSubdomainEntity)
         }
       }
-
-      const pathname = !state.newTab && state.currentURL ? getPath(state.currentURL) : ''
+      const pathname = state.currentURL ? getPath(state.currentURL) : ''
+      const url = createURL(state.environment, state.subdomain, pathname)
 
       appState.setData(state)
-
-      const url = createURL(state.environment, state.subdomain, pathname)
       dispatch({ type: 'launch', payload: url })
     } else {
       dispatch({ type: 'launch', payload: null })

@@ -13,34 +13,24 @@ export const environmentToDomain = (environment: string): string => {
   return environment === 'production' ? '.inmotionnow.com' : '.goinmo.com'
 }
 
-type HostAndDomain = {
-  domain: string
+type EnvAndSubdomain = {
   environment: string
   subdomain: string
 }
 
-export const hostnameToParts = (hostname: string): HostAndDomain => {
+export const hostnameToParts = (hostname: string): EnvAndSubdomain => {
   const parts = hostname.split('.')
   const subdomain = parts.length > 0 ? parts[0] : ''
   const environment = parts.length > 1 ? parts[1] : ''
-  const domain = parts.length > 2 ? parts.slice(2, parts.length).join('.') : ''
 
   return {
     subdomain,
-    environment,
-    domain
+    environment
   }
 }
 export const getPath = (url: URL): string => {
-  console.log(`getPath('${url.hostname}')`)
-  const { subdomain, environment } = hostnameToParts(url.hostname)
-  console.log(`{ subdomain: ${subdomain}, environment: ${environment} }`)
-  const testUrl = environment && createURL(environment, subdomain)
-  console.log(`testUrl: ${testUrl}`)
-  const currentlyInIgnite = testUrl === url.origin
-  console.log(`currentlyInIgnite: ${currentlyInIgnite}`)
-  const pathname = currentlyInIgnite ? url.pathname : ''
-  console.log(`pathname: ${pathname}`)
+  const currentlyInIgnite = getIsInIgnite(url)
+  const pathname = currentlyInIgnite ? `${url.pathname}${url.search}` : ''
   return pathname
 }
 
@@ -52,4 +42,21 @@ export const getCurrentURL = (callback: (url: URL) => void): void => {
   } else {
     callback(new URL(window.location.href))
   }
+}
+
+export function getIsInIgnite(url: URL) {
+  if (!url || !url.hostname) {
+    return false
+  }
+  const { subdomain, environment } = hostnameToParts(url.hostname)
+  const testUrl = environment && createURL(environment, subdomain)
+  const currentlyInIgnite = testUrl === url.origin
+  return currentlyInIgnite
+}
+
+export const igniteURLToParts = (url: URL, defaults: EnvAndSubdomain): EnvAndSubdomain => {
+  if (url && getIsInIgnite(url)) {
+    return hostnameToParts(url.hostname)
+  }
+  return defaults
 }

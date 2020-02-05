@@ -3,20 +3,20 @@
     "default_popup": "index.html",
     "default_title": "Opus Launcher"
   },
-  "commands":{
+  "commands": {
     "_execute_browser_action": {
       "suggested_key": {
         "windows": "Alt+Shift+O",
         "mac": "Alt+Shift+O"
       }
     }
-  }, 
+  },
   "content_security_policy": "script-src 'self' 'sha256-5As4+3YpY62+l38PsxCEkjB1R4YtyktBtRScTJ3fyLU='; object-src 'self'",
   "description": "Specify subdomain and environment and launch Opus",
   "icons": {
-      "16": "opus128.png",
-      "48": "opus128.png",
-      "128": "opus128.png"
+    "16": "opus128.png",
+    "48": "opus128.png",
+    "128": "opus128.png"
   },
   "name": "Opus Launcher",
   "manifest_version": 2,
@@ -25,5 +25,5 @@
     "tabs"
   ],
   "short_name": "Launch Opus",
-  "version": "0.0.47"
+  "version": "0.0.50"
 }

@@ -1,6 +1,6 @@
 {
   "name": "opus-launcher",
-  "version": "0.0.47",
+  "version": "0.0.50",
   "private": true,
   "devDependencies": {
     "@types/jest": "24.0.25",
